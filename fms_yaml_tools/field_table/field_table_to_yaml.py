@@ -70,7 +70,6 @@ class Field:
     self.field_type = in_field_type
     self.name = entry_tuple[0]
     self.dict = OrderedDict()
-    self.num_subparams = 0
     for in_prop in entry_tuple[1]:
       if 'tracer' == self.field_type:
         self.process_tracer(in_prop)
@@ -115,8 +114,7 @@ class Field:
       print(len(prop))
     self.dict[prop[0]] = prop[1]
     if len(prop) > 2:
-      self.dict[f'subparams{str(self.num_subparams)}'] = [OrderedDict()] 
-      self.num_subparams += 1
+      self.dict[f'subparams_{prop[0]}'] = [OrderedDict()] 
       if args.verbose:
         print(self.name)
         print(self.field_type)
@@ -128,12 +126,12 @@ class Field:
           val = dont_convert_yaml_val(eq_split[0])
           if isinstance(val, list):
             val = [dont_convert_yaml_val(b) for b in val]
-          self.dict[f'subparams{str(self.num_subparams-1)}'][0][prop[1].strip()] = val
+          self.dict[f'subparams_{prop[0]}'][0][prop[1].strip()] = val
         else:
           val = dont_convert_yaml_val(eq_split[-1])
           if isinstance(val, list):
             val = [dont_convert_yaml_val(b) for b in val]
-          self.dict[f'subparams{str(self.num_subparams-1)}'][0][eq_split[0].strip()] = val
+          self.dict[f'subparams_{prop[0]}'][0][eq_split[0].strip()] = val
       
 def list_items(brief_text, brief_od):
   """ Given text and an OrderedDict, make an OrderedDict and convert to list """
@@ -252,7 +250,8 @@ class FieldYaml:
   def writeyaml(self):
     """ Write yaml out to file """
     raw_out = yaml.dump(self.lists_wh_yaml, None, default_flow_style=False)
-    final_out = re.sub('subparams\d*:','subparams:',raw_out)
+    #final_out = re.sub('subparams_.*:','subparams:',raw_out)
+    final_out = raw_out
     with open(f'{self.filename}.yaml', 'w') as yaml_file:
       yaml_file.write(final_out)
 
